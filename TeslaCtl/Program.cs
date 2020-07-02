@@ -20,6 +20,12 @@ namespace TeslaCtl
 			List<string> extraArgs = null;
 			var client = new TeslaClient();
 
+			string[] commands =
+			{
+				"auth",
+				"list-vehicles"
+			};
+
 			var os = new OptionSet()
 				{
 					{ "e|email=", "Tesla account email", v => email = v },
@@ -46,6 +52,11 @@ namespace TeslaCtl
 				Console.WriteLine();
 				Console.WriteLine("Options:");
 				os.WriteOptionDescriptions(Console.Out);
+				Console.WriteLine("Commands:");
+				Console.Write("  ");
+				foreach (var cmd in commands)
+					Console.Write($" {cmd}");
+
 				return;
 			}
 
