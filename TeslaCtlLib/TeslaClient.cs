@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using TeslaCtlLib;
 
 namespace TeslaLib
 {
@@ -13,10 +14,10 @@ namespace TeslaLib
 		public Uri BaseUri { get; set; }
 		public string AccessToken { get; set; }
 		public HttpClient HttpClient { get; set; }
+		public long VehicleId { get; set; }
 
 		public TeslaClient()
 		{
-			BaseUri = new Uri("https://owner-api.teslamotors.com");
 			HttpClient = new HttpClient();
 			HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("TeslaCtl/1.0");
 
@@ -40,7 +41,7 @@ namespace TeslaLib
 				return JsonConvert.DeserializeObject<T>(response, _serializerSettings);
 			}
 			else
-				return default(T);
+				throw new TeslaApiException(responseMessage, endpoint);
 		}
 
 		private HttpRequestMessage getRequestMessageWithAuth(Uri requestUri, HttpMethod method, string requestPayload, IDictionary<string,string> formdata)

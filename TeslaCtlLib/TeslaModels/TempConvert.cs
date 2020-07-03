@@ -10,5 +10,10 @@ namespace TeslaLib.TeslaModels
 		{
 			return ((9.0f / 5.0f) * celsius) + 32.0f;
 		}
+
+		public static float ToCelsius(float fahrenheit)
+		{
+			return (fahrenheit - 32.0f) * (5.0f / 9.0f);
+		}
 	}
 }
