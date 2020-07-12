@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using TeslaCtlLib;
+using System.Threading;
 
 namespace TeslaLib
 {
@@ -57,6 +58,28 @@ namespace TeslaLib
 				requestMessage.Content = new FormUrlEncodedContent(formdata);
 
 			return requestMessage;
+		}
+
+		public async Task<bool> ForceWake(int timeout = Timeout.Infinite)
+		{
+			var start = DateTime.Now;
+			var vehicleIsAwake = false;
+			var stopTrying = false;
+
+			do
+			{
+				var response = await Wake();
+
+				if (response.State == "online")
+					vehicleIsAwake = true;
+				else if (timeout != Timeout.Infinite && (DateTime.Now - start).TotalSeconds > timeout)
+					stopTrying = true;
+				else
+					await Task.Delay(5000);
+			}
+			while (!vehicleIsAwake && !stopTrying);
+
+			return vehicleIsAwake;
 		}
 
 		private JsonSerializerSettings _serializerSettings;

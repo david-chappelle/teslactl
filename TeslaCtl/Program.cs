@@ -39,11 +39,13 @@ namespace TeslaCtl
 			bool guiSettingsRequested = false;
 			bool getServiceDataRequested = false;
 			string sentryModeRequested = null;
+			bool forceAwakeRequested = false;
 
 			var os = new OptionSet()
 				{
 					// commands
 					{ "w|wake", "Wake up the car", v => wakeRequested = v != null },
+					{ "forcewake", "Wake up the car and wait for it to be awake", v => forceAwakeRequested = v != null },
 					{ "u|unlockdoors", "Unlock the doors", v => { if (v != null) lockRequested = false; } },
 					{ "l|lockdoors", "Lock the doors", v => { if (v != null) lockRequested = true; } },
 					{ "honk", "Honk the horn", v => honkRequested = v != null },
@@ -173,6 +175,12 @@ namespace TeslaCtl
 			{
 				var response = await client.Wake();
 				printResults("wake", response);
+			}
+
+			if (forceAwakeRequested)
+			{
+				var isAwake = await client.ForceWake();
+				Console.WriteLine("force_awake: {0}", isAwake);
 			}
 
 			if (honkRequested)
