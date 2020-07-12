@@ -39,6 +39,7 @@ namespace TeslaCtl
 			bool getClimateStateRequested = false;
 			bool guiSettingsRequested = false;
 			bool getServiceDataRequested = false;
+			string sentryModeRequested = null;
 
 			var os = new OptionSet()
 				{
@@ -54,6 +55,7 @@ namespace TeslaCtl
 					{ "remotestartdrive", "Start vehicle keyless drive mode", v => remoteStartRequested = v != null },
 					{ "chargeport=", "Set charge port state (open/closed)", v => chargePortStateRequested = v },
 					{ "charge=", "Set charging state (on/off)", v => chargeStateRequested = v },
+					{ "sentrymode=", "Set sentry mode (on/off)", v => sentryModeRequested = v },
 
 					// state and settings
 					{ "d|vehicledata", "Retrieve vehicle data", v => vehicleDataRequested = v != null },
@@ -299,6 +301,18 @@ namespace TeslaCtl
 				printResults("service_data", response);
 			}
 
+			if (sentryModeRequested != null)
+			{
+				var sentryOn = parseBoolean(sentryModeRequested);
+				if (sentryOn.HasValue)
+				{
+					var response = await client.SentryMode(sentryOn.Value);
+					printResults("set_sentry_mode", response);
+				}
+				else
+					Console.Error.WriteLine("sentry mode must be \"on\" or \"off\"");
+			}
+
 			return 0;
 		}
 
@@ -325,6 +339,24 @@ namespace TeslaCtl
 			Console.Out.WriteLine();
 			_serializer.Serialize(Console.Out, results);
 			Console.Out.WriteLine();
+		}
+
+		static bool? parseBoolean(string opt)
+		{
+			switch (opt.ToLower())
+			{
+				case "on":
+				case "1":
+				case "true":
+					return true;
+
+				case "off":
+				case "0":
+				case "false":
+					return false;
+			}
+
+			return null;
 		}
 
 		static string _clientId = null;

@@ -129,5 +129,14 @@ namespace TeslaLib
 
 			return await getTeslaAPI<CommandResponse>($"api/1/vehicles/{VehicleId}/command/speed_limit_set_limit", HttpMethod.Post, formdata: formdata);
 		}
+
+		public async Task<CommandResponse> SentryMode(bool sentryModeOn)
+		{
+			var formdata = new Dictionary<string, string>();
+			formdata["on"] = sentryModeOn ? "true" : "false";
+
+			var response = await getTeslaAPI<ResponseWrapper<CommandResponse>>($"api/1/vehicles/{VehicleId}/command/set_sentry_mode", HttpMethod.Post, formdata: formdata);
+			return response?.Item;
+		}
 	}
 }
