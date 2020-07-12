@@ -27,8 +27,7 @@ namespace TeslaCtl
 			bool wakeRequested = false;
 			bool vehicleDataRequested = false;
 			bool driveStateRequested = false;
-			bool lockRequested = false;
-			bool unlockRequested = false;
+			bool? lockRequested = null;
 			bool honkRequested = false;
 			bool flashRequested = false;
 			string hvacSetting = null;
@@ -45,8 +44,8 @@ namespace TeslaCtl
 				{
 					// commands
 					{ "w|wake", "Wake up the car", v => wakeRequested = v != null },
-					{ "u|unlockdoors", "Unlock the doors", v => unlockRequested = v != null },
-					{ "l|lockdoors", "Lock the doors", v => lockRequested = v != null },
+					{ "u|unlockdoors", "Unlock the doors", v => { if (v != null) lockRequested = false; } },
+					{ "l|lockdoors", "Lock the doors", v => { if (v != null) lockRequested = true; } },
 					{ "honk", "Honk the horn", v => honkRequested = v != null },
 					{ "f|flash", "Flash the lights", v => flashRequested = v != null },
 					{ "hvac=", "HVAC (on/off)", v => hvacSetting = v },
@@ -224,21 +223,30 @@ namespace TeslaCtl
 				}
 			}
 
-			if (lockRequested)
-				await execStandardCommand(client.LockDoors, "door_lock");
-
-			if (unlockRequested)
-				await execStandardCommand(client.LockDoors, "door_unlock");
+			if (lockRequested.HasValue)
+			{
+				var response = await client.LockDoors(lockRequested.Value);
+				printResults("door_lock", response);
+			}
 
 			if (flashRequested)
 				await execStandardCommand(client.FlashLights, "flash_lights");
 
 			if (hvacSetting != null)
 			{
+				bool? setting = null;
 				if (hvacSetting.ToLower() == "on" || hvacSetting == "1")
-					await execStandardCommand(client.StartHvac, "auto_conditioning_start");
+					setting = true;
 				else if (hvacSetting.ToLower() == "off" || hvacSetting == "0")
-					await execStandardCommand(client.StopHvac, "auto_conditioning_stop");
+					setting = false;
+
+				if (setting.HasValue)
+				{
+					var response = await client.Hvac(setting.Value);
+					printResults("auto_conditioning", response);
+				}
+				else
+					Console.Error.WriteLine("auto_conditioning: specify \"on\" or \"off\"");
 			}
 
 			if (remoteStartRequested)
@@ -257,9 +265,9 @@ namespace TeslaCtl
 				CommandResponse response = null;
 
 				if (chargePortStateRequested.ToLower() == "open" || chargePortStateRequested == "1")
-					response = await client.OpenChargePort();
+					response = await client.ChargePort(true);
 				else if (chargePortStateRequested.ToLower() == "closed" || chargePortStateRequested == "0")
-					response = await client.CloseChargePort();
+					response = await client.ChargePort(false);
 				else
 					Console.Error.WriteLine("chargeportstate must be \"open\" or \"closed\"");
 
